@@ -1,0 +1,4 @@
+*/.idea/
+.idea/
+run_file/*
+!run_file/*.example

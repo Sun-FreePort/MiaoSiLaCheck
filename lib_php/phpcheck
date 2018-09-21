@@ -1,0 +1,174 @@
+#!/usr/bin/env php
+<?php
+if (empty($argv[1]))
+    return false;
+
+$check = new CheckPHP($argv[1]);
+$check->autoCheck();
+
+class CheckPHP
+{
+    public $line = 0;
+    public $result = '';
+    public $filePath = false;
+    public $PHPBody = false;
+    public $PHPLine = false;
+
+    public function __construct(string $filePath)
+    {
+        $this->filePath = $filePath;
+    }
+
+    public function autoCheck()
+    {
+        if (!isset($this->filePath)) {
+            echo "\n缺失参数：被检查的文件地址";
+            return false;
+        }
+        if (!file_exists($this->filePath)) {
+            echo "\n参数有误：被检查的文件不存在";
+            return false;
+        }
+        $file = fopen($this->filePath, 'r');
+
+        // 单行
+        while (!feof($file)) {
+            $content = fgets($file);
+            // 确定是否处于 PHP 代码中
+            $this->line++;
+            if (preg_match('/<\?.+\?>/', $content, $preg))
+                $this->PHPLine = true;
+            elseif (preg_match('/<\?/', $content, $preg))
+                $this->PHPBody = true;
+            elseif (preg_match('/\?>/', $content, $preg))
+                $this->PHPBody = false;
+
+            // 进行实际检测
+            if ($this->PHPBody || $this->PHPLine) {
+                $this->addError($this->checkParams($content));
+                $this->addError($this->checkFormat($content));
+                $this->addError($this->checkApiDoc($content));
+                $this->addError($this->checkCommonSpace($content));
+                $this->addError($this->checkDoubleQuotation($content));
+            }
+            // 重置 PHP 单行状态
+            $this->PHPLine = false;
+        }
+        fclose($file);
+
+//        $file = fopen($this->filePath, 'r');
+//        // 整个文件
+//        if ($contents = fread($file, filesize($this->filePath))) {
+//            if ($error = $this->checkAllApiDoc($contents)) {
+//                $show_line = sprintf('%04s', $error[2]);
+//                $this->result .= "| {$show_line} | {$error[0]} | {$error[1]} |\n";
+//            }
+//        }
+//        fclose($file);
+
+        if ($this->result) {
+            echo $this->filePath . "\n| 行数 | 错误提示               | 正确格式 |\n" . $this->result;
+        }
+
+        return false;
+    }
+
+    /**
+     * 增加错误注释
+     *
+     * @param string|array|bool $errors
+     * @return bool
+     */
+    protected function addError($errors)
+    {
+        if (!$errors) {
+            return false;
+        }
+
+        if (is_array($errors[0])) {
+            foreach ($errors as $error) {
+                $show_line = sprintf('%04s', $this->line);
+                $this->result .= "| {$show_line} | {$error[0]} | {$error[1]} |\n";
+            }
+        } else {
+            $show_line = sprintf('%04s', $this->line);
+            $this->result .= "| {$show_line} | {$errors[0]} | {$errors[1]} |\n";
+        }
+
+        return true;
+    }
+
+    /* 具体规则 */
+    public function checkParams($content)
+    {
+        if (preg_match('/(\s|\=)Yii\:\:app\(\)\-\>request\-\>getParam/', $content)
+            || preg_match('/(\s|\=)Yii\:\:\$app\-\>request\-\>(get|post)\(/', $content))
+            return ['参数未被过滤          ', '无提示'];
+
+        return false;
+    }
+
+    public function checkApiDoc($content)
+    {
+        if (preg_match('/@apiParam.+?\{((?!(?:Boolean|Number|String|Object)\}|(?:boolean|number|string|object)=))/', $content))
+            return ['类型不被 ApiDoc 支持  ', '无提示'];
+
+        return false;
+    }
+
+    public function checkCommonSpace($content)
+    {
+        if (preg_match('/\s\/\/(?!\s)/', $content, $preg))
+            return ['注释空格缺失          ', '无提示'];
+
+        return false;
+    }
+
+    public function checkDoubleQuotation($content)
+    {
+        $result = [];
+        if (preg_match('/\"\$[a-zA-z_]+\"/', $content, $preg))
+            $result[] = ['纯变量使用双引号      ', 'echo encode($params)'];
+
+        if (preg_match('/^(?!\s).*(\s|\(|\=)\"((?!(\{\$.+\})).)*\"/', $content, $preg))
+            $result[] = ['纯字符串使用双引号    ', '\'This a string.\''];
+
+        return $result ?: false;
+    }
+
+    public function checkFormat($content)
+    {
+        $result = [];
+        if (preg_match('/<\?=(\s|[0-9a-zA-Z\'"])+;\s\?>/', $content, $preg))
+            $result[] = ['分号冗余              ', '<?= 123 ?>'];
+
+        if (preg_match('/intval\(Yii/', $content, $preg))
+            $result[] = ['intval()改用(int)     ', '(int)$params'];
+
+        if (preg_match('/(require|include)(_once)?\s/', $content, $preg))
+            $result[] = ['引入文件格式有误      ', 'require_once(\'file.php\')'];
+
+        if (preg_match('/^\$[a-z]+?[A-Z][a-z]/', $content, $preg))
+            $result[] = ['变量名存在大写        ', '$var_name'];
+
+        if (preg_match('/\;[ ]{1}\/\/\s.+/', $content, $preg))
+            $result[] = ['行尾注释前空两格      ', '$var_name'];
+
+        return $result ?: false;
+    }
+
+    public function checkAllApiDoc($contents)
+    {
+//    var_dump(substr_count($contents, "\n"));exit;
+//            var_dump(preg_match_all('/(\*\s@apiParam(.|\n)+\}\n\np)/U', $contents, $matches));
+//    var_dump($matches[1]);
+//    exit;
+//    if (preg_match_all('/(@apiParam(.|\n)+?\}\n\n)/', $contents, $matches))
+//        var_dump($contents);exit;
+//        var_dump(count($matches));exit;
+//        if (preg_match('/@apiParam/', $contents))
+//            return ['类型不被 ApiDoc 支持', '无提示', 'lineNumber'];
+
+        return false;
+    }
+}
