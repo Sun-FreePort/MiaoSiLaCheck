@@ -14,42 +14,27 @@ do
         # 获取相对路径及需要做的检测
         IFS=',' file=($line)
 
-        if [ "${file[1]}" == "php" ]
-        then
-#            phplint ${file[0]}
-            $rootPath/lib_php/phpcheck ${file[0]}
-        elif [ "${file[1]}" == "js" ]
-        then
-            eslint -c .eslintrc.js ${file[0]}
-        elif [ "${file[1]}" == "html" ]
-        then
-            htmllint ${file[0]}
-        fi
+        for index in "${file[@]}"
+        do
+            # 跳过文件路径
+            if [ $index == "${file[0]}" ]; then
+                continue
+            fi
 
-        if [ "${file[2]}" == "php" ]
-        then
-            phplint ${file[0]}
-            $rootPath/lib_php/phpcheck ${file[0]}
-            echo 'PHP 检查完毕'
-        elif [ "${file[2]}" == "js" ]
-        then
-            eslint -c .eslintrc.js ${file[0]}
-        elif [ "${file[2]}" == "html" ]
-        then
-            htmllint ${file[0]}
-        fi
+            if [ $index == "php" ]; then
+                phplint ${file[0]}
+                $rootPath/lib_php/phpcheck ${file[0]}
 
-        if [ "${file[3]}" == "php" ]
-        then
-            phplint ${file[0]}
-            $rootPath/lib_php/phpcheck ${file[0]}
-            echo 'PHP 检查完毕'
-        elif [ "${file[3]}" == "js" ]
-        then
-            eslint -c .eslintrc.js ${file[0]}
-        elif [ "${file[3]}" == "html" ]
-        then
-            htmllint ${file[0]}
-        fi
+            elif [ $index == "js" ]; then
+                eslint -c .eslintrc.js ${file[0]}
+
+            elif [ $index == "es" ]; then
+                eslint -c .eslintrc ${file[0]}
+
+            elif [ $index == "html" ]; then
+                htmllint ${file[0]}
+            fi
+        done
+
     fi
 done < $rootPath/run_file/$1

@@ -152,7 +152,7 @@ class CheckPHP
             $result[] = ['变量名存在大写        ', '$var_name'];
 
         if (preg_match('/\;[ ]{1}\/\/\s.+/', $content, $preg))
-            $result[] = ['行尾注释前空两格      ', '$var_name'];
+            $result[] = ['行尾注释前空两格      ', '$var_name = 1;  // a common'];
 
         return $result ?: false;
     }
