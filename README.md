@@ -1,4 +1,4 @@
-# Check of Maoer
+# Check of MiaoSiLa
 
 一个作用于 Missevan 相关项目的第三方代码检查器，需前置官方标定的检查器，方可启用。
 
@@ -33,6 +33,7 @@ complete -W "${files/test.example/}" run
  - html：HTMLLint
  - js：ESLint to JavaScript
  - es：ESLint to ECMAScriptX file suffix type
+ - esTest：Mocha test package
 
 在 **Bash 终端**中，运行 `run 文件名` 命令。
 

@@ -5,7 +5,7 @@
 rootPath=$(cd `dirname $0`; pwd)
 aimPath=`head -1 $rootPath/run_file/$1`
 
-cd $aimPath
+cd ${aimPath}
 
 while read -r line
 do
@@ -31,10 +31,12 @@ do
             elif [ $index == "es" ]; then
                 eslint -c .eslintrc ${file[0]}
 
+            elif [ $index == "esTest" ]; then
+                node_modules/.bin/mocha --compilers js:babel-core/register ${file[0]}
+
             elif [ $index == "html" ]; then
                 htmllint ${file[0]}
             fi
         done
-
     fi
 done < $rootPath/run_file/$1
