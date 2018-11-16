@@ -31,10 +31,10 @@ complete -W "${files/test.example/}" run
 
  - php：PHPLint + 补充检查脚本
  - html：HTMLLint
- - js：ESLint
- - es：ESLint
- 
+ - js：ESLint to JavaScript
+ - es：ESLint to ECMAScriptX file suffix type
+
 在 **Bash 终端**中，运行 `run 文件名` 命令。
- 
+
 本项目依赖的命令补全、shell 脚本等内容，均以 Bash 为基准，其他终端可能出现未知问题。
 对非 Bash 终端，不保证检查器的可用性，也不提供任何解惑支持。

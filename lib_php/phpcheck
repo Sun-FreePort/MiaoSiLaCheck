@@ -50,6 +50,7 @@ class CheckPHP
                 $this->addError($this->checkApiDoc($content));
                 $this->addError($this->checkCommonSpace($content));
                 $this->addError($this->checkDoubleQuotation($content));
+                $this->addError($this->checkMisWrite($content));
             }
             // 重置 PHP 单行状态
             $this->PHPLine = false;
@@ -108,14 +109,6 @@ class CheckPHP
         return false;
     }
 
-    public function checkApiDoc($content)
-    {
-        if (preg_match('/@apiParam.+?\{((?!(?:Boolean|Number|String|Object)\}|(?:boolean|number|string|object)=))/', $content))
-            return ['类型不被 ApiDoc 支持  ', '无提示'];
-
-        return false;
-    }
-
     public function checkCommonSpace($content)
     {
         if (preg_match('/\s\/\/(?!\s)/', $content, $preg))
@@ -124,6 +117,25 @@ class CheckPHP
         return false;
     }
 
+    /**
+     * 错字筛选
+     * @param $content
+     * @return bool
+     */
+    public function checkMisWrite($content)
+    {
+        $result = [];
+        if (preg_match('/登陆/', $content, $preg))
+            $result[] = ['您要输入的是："登陆"吗？', 'echo encode($params)'];
+
+        return $result ?: false;
+    }
+
+    /**
+     * 字符串引号误用
+     * @param $content
+     * @return bool
+     */
     public function checkDoubleQuotation($content)
     {
         $result = [];
@@ -136,6 +148,11 @@ class CheckPHP
         return $result ?: false;
     }
 
+    /**
+     * 格式错误
+     * @param $content
+     * @return bool
+     */
     public function checkFormat($content)
     {
         $result = [];
@@ -157,6 +174,24 @@ class CheckPHP
         return $result ?: false;
     }
 
+    /**
+     * API 注释单行检查
+     * @param $content
+     * @return array|bool
+     */
+    public function checkApiDoc($content)
+    {
+        if (preg_match('/@apiParam.+?\{((?!(?:Boolean|Number|String|Object)\}|(?:boolean|number|string|object)=))/', $content))
+            return ['类型不被 ApiDoc 支持  ', '无提示'];
+
+        return false;
+    }
+
+    /**
+     * API 注释局部检查
+     * @param $contents
+     * @return bool
+     */
     public function checkAllApiDoc($contents)
     {
 //    var_dump(substr_count($contents, "\n"));exit;
