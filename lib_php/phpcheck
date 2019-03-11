@@ -126,7 +126,7 @@ class CheckPHP
     {
         $result = [];
         if (preg_match('/登陆/', $content, $preg))
-            $result[] = ['您要输入的是："登陆"吗？', 'echo encode($params)'];
+            $result[] = ['您要输入的是："登录"吗？', 'echo encode($params)'];
 
         return $result ?: false;
     }
