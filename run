@@ -2,17 +2,21 @@
 # TODO: 标准化路径中的反/斜杠
 # 考虑好手上的活儿到底是什么。基建类的任务值得做，下大力气也值得做，只要项目还在，无论怎么改，基建都不可能拆掉；业务则有选择的做，毕竟是分分钟可能被砍掉的东西，基建稳妥才能快速做掉业务，基建做得越稳，业务做得越快，被砍掉时的成本损耗就越低。
 
-rootPath=$(cd `dirname $0`; pwd)
-aimPath=`head -1 ${rootPath}/run_file/$1`
-
 # 清理 Windows 换行符
 sed -i 's/\r//g' run_file/$1
 
+rootPath=$(cd `dirname $0`; pwd)
+aimPath=`head -1 ${rootPath}/run_file/$1`
+
+# 进入项目列表
 cd ${aimPath}
-echo "检查器.结果日志：" > maoerChecker.st
+
+i=0
+rm *maoerChecker.st
 
 while read -r line
 do
+    i=`expr ${i} + 1`
     if [[ "${line}" != "${aimPath}" ]]
     then
         # 获取相对路径及需要做的检测
@@ -24,23 +28,23 @@ do
             if [[ ${index} = "${file[0]}" ]]; then
                 continue
             fi
-            echo "" >> maoerChecker.st
+            echo "" >> ${i}maoerChecker.st
 
             if [[ ${index} = "php" ]]; then
-                phplint ${file[0]} >> maoerChecker.st
-                ${rootPath}/lib_php/phpcheck ${file[0]} >> maoerChecker.st
+                phplint ${file[0]} >> ${i}maoerChecker.st
+                ${rootPath}/lib_php/phpcheck ${file[0]} >> ${i}maoerChecker.st
 
             elif [[ ${index} = "js" ]]; then
-                node_modules/eslint/bin/eslint.js -c .eslintrc.js ${file[0]} >> maoerChecker.st
+                node_modules/eslint/bin/eslint.js -c .eslintrc.js ${file[0]} >> ${i}maoerChecker.st
 
             elif [[ ${index} = "es" ]]; then
-                eslint -c .eslintrc ${file[0]} >> maoerChecker.st
+                eslint -c .eslintrc ${file[0]} >> ${i}maoerChecker.st
 
             elif [[ ${index} = "esTest" ]]; then
-                node_modules/.bin/mocha --compilers js:babel-core/register ${file[0]} >> maoerChecker.st
+                node_modules/.bin/mocha --compilers js:babel-core/register ${file[0]} >> ${i}maoerChecker.st
 
             elif [[ ${index} = "html" ]]; then
-                htmllint ${file[0]} >> maoerChecker.st
+                htmllint ${file[0]} >> ${i}maoerChecker.st
             fi
         done
     fi
