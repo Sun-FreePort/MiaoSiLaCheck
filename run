@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# TODO: 标准化路径中的反/斜杠
 # 考虑好手上的活儿到底是什么。基建类的任务值得做，下大力气也值得做，只要项目还在，无论怎么改，基建都不可能拆掉；业务则有选择的做，毕竟是分分钟可能被砍掉的东西，基建稳妥才能快速做掉业务，基建做得越稳，业务做得越快，被砍掉时的成本损耗就越低。
+
+######
+# 参数列表：
+#     : Only check.
+#   -d: Generate documents of controller.
+######
 
 # 清理 Windows 换行符
 sed -i 's/\r//g' run_file/$1
@@ -45,6 +50,13 @@ do
 
             elif [[ ${index} = "html" ]]; then
                 htmllint ${file[0]} >> ${i}maoerChecker.st
+            fi
+
+            # 生成文档
+            if [[ $2 = "-d" ]]; then
+                if echo ${file[0]} | grep Controller.php; then
+                    apidoc -f ${file[0]} -o ${i}apidoc/
+                fi
             fi
         done
     fi
