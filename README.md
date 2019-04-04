@@ -29,15 +29,15 @@ complete -W "${files/test.example/}" run
 
 *后续建立文件后，在终端输入 `run `（注意：带空格），按 `Tab` 有自动补全*
 
-2\. 在本项目的 *run_file* 目录创建文件，仿照 `test.example` 增加需要检测的文件清单。
+2\. 在本项目的 *run_file* 目录创建文件，仿照 `test.example` 增加文件，内置项目目录即可。
 
-支持格式：
+支持检查器：
 
  - php：PHPLint + 补充检查脚本
- - html：HTMLLint
- - js：ESLint to JavaScript
+ - html / php(views)：HTMLLint
+ - js / php(views)：ESLint to JavaScript
  - es：ESLint to ECMAScriptX file suffix type
- - esTest：Mocha test package
+ - ~~esTest：Mocha test package~~
 
 在 **Bash 终端**中，运行 `run 文件名` 命令。
 

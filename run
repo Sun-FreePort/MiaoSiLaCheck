@@ -16,48 +16,55 @@ aimPath=`head -1 ${rootPath}/run_file/$1`
 # 进入项目列表
 cd ${aimPath}
 
+git co $1
+test=(`git diff --name-only HEAD~ HEAD`)
+
 i=0
 rm *maoerChecker.st
-
-while read -r line
+for file in "${test[@]}"
 do
-    i=`expr ${i} + 1`
-    if [[ "${line}" != "${aimPath}" ]]
-    then
-        # 获取相对路径及需要做的检测
-        IFS=',' file=(${line})
+    # 检查后缀名，确认使用啥样的检查器
+    if [[ "${file##*.}"x = "php"x ]]; then
+        i=`expr ${i} + 1`
+        printf "${file} - PHPLint\n - - - - - - \n" >> ${i}maoerChecker.st
 
-        for index in "${file[@]}"
-        do
-            # 跳过文件路径
-            if [[ ${index} = "${file[0]}" ]]; then
-                continue
-            fi
-            echo "" >> ${i}maoerChecker.st
-
-            if [[ ${index} = "php" ]]; then
-                phplint ${file[0]} >> ${i}maoerChecker.st
-                ${rootPath}/lib_php/phpcheck ${file[0]} >> ${i}maoerChecker.st
-
-            elif [[ ${index} = "js" ]]; then
-                node_modules/eslint/bin/eslint.js -c .eslintrc.js ${file[0]} >> ${i}maoerChecker.st
-
-            elif [[ ${index} = "es" ]]; then
-                eslint -c .eslintrc ${file[0]} >> ${i}maoerChecker.st
-
-            elif [[ ${index} = "esTest" ]]; then
-                node_modules/.bin/mocha --compilers js:babel-core/register ${file[0]} >> ${i}maoerChecker.st
-
-            elif [[ ${index} = "html" ]]; then
-                htmllint ${file[0]} >> ${i}maoerChecker.st
-            fi
-
-            # 生成文档
-            if [[ $2 = "-d" ]]; then
-                if echo ${file[0]} | grep Controller.php; then
-                    apidoc -f ${file[0]} -o ${i}apidoc/
-                fi
-            fi
-        done
+        phplint ${file} >> ${i}maoerChecker.st
+        ${rootPath}/lib_php/phpcheck ${file} >> ${i}maoerChecker.st
     fi
-done < ${rootPath}/run_file/$1
+
+    if [[ "${file##*.}"x = "js"x ]] || [[ "${file##*.}"x = "php"x && `echo "${file}" | grep views` ]]; then
+        i=`expr ${i} + 1`
+        printf "${file} - JSLint\n - - - - - - \n" >> ${i}maoerChecker.st
+
+        node_modules/eslint/bin/eslint.js -c .eslintrc.js ${file} >> ${i}maoerChecker.st
+    fi
+
+    if [[ "${file##*.}"x = "es"x ]]; then
+        i=`expr ${i} + 1`
+        printf "${file} - ESLint\n - - - - - - \n" >> ${i}maoerChecker.st
+
+        eslint -c .eslintrc ${file} >> ${i}maoerChecker.st
+    fi
+
+    if [[ "${file##*.}"x = "esTest"x ]]; then
+        i=`expr ${i} + 1`
+        printf "${file} - ESTest\n - - - - - - \n" >> ${i}maoerChecker.st
+
+        node_modules/.bin/mocha --compilers js:babel-core/register ${file} >> ${i}maoerChecker.st
+    fi
+
+    if [[ "${file##*.}"x = "html"x ]] || [[ "${file##*.}"x = "php"x && `echo "${file}" | grep views` ]]; then
+        i=`expr ${i} + 1`
+        printf "${file} - HTMLLint\n - - - - - - \n" >> ${i}maoerChecker.st
+
+        htmllint ${file} >> ${i}maoerChecker.st
+    fi
+
+    # 生成 APIDoc 文档
+    if [[ $2 = "-d" ]]; then
+        if echo ${file} | grep Controller.php; then
+            apidoc -f ${file} -o ${i}apidoc/
+        fi
+    fi
+done
+
